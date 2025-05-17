@@ -86,20 +86,30 @@ ${formatMessages}
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <Card className="max-w-2xl w-full">
         <CardContent className="p-6 space-y-6 text-center">
-          <h2 className="text-2xl font-bold">🏁 토론 결과</h2>
-          {loading ? (
-            <p>결과 분석 중...</p>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-xl font-semibold">승자: <span className="text-blue-600 font-bold">{winner}</span></p>
-              <p className="text-gray-800 whitespace-pre-line">{resultText}</p>
-            </div>
-          )}
-          <div className="flex justify-center gap-4 flex-wrap">
-            <Button onClick={() => navigate('/')}>다시 시작</Button>
-            <Button onClick={() => navigate('/rankingSave')}>랭킹 기록</Button>
-          </div>
-        </CardContent>
+  <h2 className="text-2xl font-bold">🏁 토론 결과</h2>
+  
+  {/* ✅ 주제 표시 */}
+  <p className="text-lg font-medium text-gray-700">
+    🗳️ 선택한 주제: <span className="font-semibold text-green-700">{playerPick}</span>
+  </p>
+
+  {loading ? (
+    <p>결과 분석 중...</p>
+  ) : (
+    <div className="space-y-4">
+      <p className="text-xl font-semibold">
+        승자: <span className="text-blue-600 font-bold">{winner}</span>
+      </p>
+      <p className="text-gray-800 whitespace-pre-line">{resultText}</p>
+    </div>
+  )}
+
+  <div className="flex justify-center gap-4 flex-wrap">
+    <Button onClick={() => navigate('/')}>다시 시작</Button>
+    <Button onClick={() => navigate('/rankingSave')}>랭킹 기록</Button>
+  </div>
+</CardContent>
+
       </Card>
     </div>
   );
