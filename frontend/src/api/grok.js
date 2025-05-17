@@ -1,3 +1,8 @@
+const BASE_URL = import.meta.env.PROD
+  ? 'https://vsgame-backend.onrender.com'
+  : '';
+
+
 export async function callGrok(prompt) {
   try {
     const response = await fetch('/api/grok', {
