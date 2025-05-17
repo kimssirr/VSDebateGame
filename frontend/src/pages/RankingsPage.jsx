@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { BASE_URL } from '../lib/constants'; // 상단에 추가
+import { BASE_URL } from '../lib/constants'; 
 
 
 export default function RankingsPage() {

@@ -19,7 +19,29 @@ export default function ResultPage() {
     if (!messages || messages.length === 0) return;
     const prepareJudgement = async () => {
       const formatMessages = messages.map((m, i) => `${m.sender === 'ai' ? 'AI' : '사용자'}: ${m.text}`).join('\n');
-      const prompt = `다음은 토론 내용입니다. 누가 더 설득력 있었는지 판단해주세요.\n\n${formatMessages}\n\n승자를 \"사용자\" 또는 \"AI\"로 말하고, 간단한 이유와 승률을 알려주세요. (예: 사용자 70%, AI 30%) 한국말로 말해주세요.`;
+      const prompt = `다음은 사용자와 AI 간의 토론 내용입니다. 최대 5개의 메시지를 주고받을 수 있으며, 중간에 종료될 수도 있습니다. 아래 기준에 따라 누가 더 설득력 있었는지 평가하세요.
+
+[평가 기준] (총점 100점)
+1. 논리적 일관성 (40점)
+2. 근거의 명확성 (25점)
+3. 반박의 적절성 (25점)
+4. 표현력 및 명확성 (10점)
+
+각 기준에 대해 사용자와 AI에게 점수를 부여하고, 총점을 계산하세요. 아래 형식으로 결과를 한국어로만 작성해주세요:
+
+- 사용자 점수: 논리 XX.X / 근거 XX.X / 반박 XX.X / 표현 XX.X → 총합 XXX.X점
+- AI 점수: 논리 XX.X / 근거 XX.X / 반박 XX.X / 표현 XX.X → 총합 XXX.X점
+- 승자: 사용자 또는 AI
+- 이유: 간단히 설명해주세요.
+
+[토론 내용]
+
+${formatMessages}
+
+결과는 위 형식 그대로 출력해주세요.`;
+
+
+      
       const res = await callGrok(prompt);
       setResultText(res);
 
@@ -49,6 +71,9 @@ export default function ResultPage() {
       setLoading(false);
     };
     prepareJudgement();
+    if (playerPick) {
+    localStorage.setItem('playerPick', playerPick); // 선택지 저장
+  }
   }, [messages]);
 
   if (!messages || !playerPick || !aiPick) {

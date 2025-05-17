@@ -19,6 +19,8 @@ export default function RankingSavePage() {
     const username = localStorage.getItem('username');
     const scoreRaw = localStorage.getItem('lastScore');
     const messagesRaw = localStorage.getItem('lastMessages');
+    const topic = localStorage.getItem('playerPick');
+
 
     let messages = [];
     try {
@@ -49,10 +51,10 @@ export default function RankingSavePage() {
     fetch(`${BASE_URL}/api/rankings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, score, quote: bestQuote }),
+      body: JSON.stringify({ username, score, quote: bestQuote, topic }),
     })
       .then(res => res.json())
-      .then(() => setResult('✅ 랭킹에 기록되었습니다!'))
+      .then(() => setResult(`✅ 랭킹에 기록되었습니다! (${score.toFixed(1)}점)`))
       .catch(() => setResult('❌ 기록 실패.'));
   }, []);
 

@@ -6,7 +6,6 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 import db from './db.js';
 import path from 'path';
-import cors from 'cors';
 
 dotenv.config();
 
@@ -27,14 +26,15 @@ db.exec(`
     username TEXT NOT NULL,
     score REAL,
     date TEXT NOT NULL,
-    quote TEXT
+    quote TEXT,
+    topic TEXT
   )
 `);
 
 
 // 결과 저장
 app.post('/api/rankings', (req, res) => {
-  const { username, score, quote } = req.body;
+  const { username, score, quote, topic } = req.body; 
   const today = new Date().toISOString().slice(0, 10);
 
   if (!username || typeof score !== 'number') {
@@ -42,8 +42,11 @@ app.post('/api/rankings', (req, res) => {
   }
 
   try {
-    const stmt = db.prepare('INSERT INTO rankings (username, score, date, quote) VALUES (?, ?, ?, ?)');
-    stmt.run(username, score, today, quote);
+    const stmt = db.prepare(`
+      INSERT INTO rankings (username, score, date, quote, topic)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    stmt.run(username, score, today, quote, topic);
     res.json({ success: true });
   } catch (error) {
     console.error('DB 저장 실패:', error);
@@ -51,21 +54,24 @@ app.post('/api/rankings', (req, res) => {
   }
 });
 
+
 // 오늘의 랭킹 조회 (score 평균 기준 정렬)
 app.get('/api/rankings', (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
 
   try {
     const rows = db.prepare(`
-      SELECT username,
-             COUNT(*) AS games,
-             ROUND(AVG(score), 1) AS averageScore,
-             MAX(quote) AS quote
-      FROM rankings
-      WHERE date = ?
-      GROUP BY username
-      ORDER BY averageScore DESC, games DESC
-    `).all(today);
+  SELECT username,
+         COUNT(*) AS games,
+         ROUND(AVG(score), 1) AS averageScore,
+         MAX(quote) AS quote,
+         MAX(topic) AS topic 
+  FROM rankings
+  WHERE date = ?
+  GROUP BY username
+  ORDER BY averageScore DESC, games DESC
+`).all(today);
+
 
     res.json(rows);
   } catch (error) {
