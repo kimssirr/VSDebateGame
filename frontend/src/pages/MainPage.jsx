@@ -33,24 +33,28 @@ export default function MainPage() {
   const today = new Date().toISOString().slice(0, 10);
   const topicSet = topicsByDate[today] || topicsByDate.default;
   const [topicA, topicB] = topicSet.topics || ['고양이', '강아지'];
+// 🔥 Unsplash 백엔드 프록시로 이미지 불러오기
+useEffect(() => {
+  const BASE_URL = import.meta.env.PROD
+    ? 'https://vsdebategame.onrender.com' // ← 네 백엔드 주소
+    : '';
 
+  const fetchImages = async () => {
+    try {
+      const res1 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(topicA)}`);
+      const res2 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(topicB)}`);
+      const data1 = await res1.json();
+      const data2 = await res2.json();
+      setLeftImage(data1.url);
+      setRightImage(data2.url);
+    } catch (err) {
+      console.error('배경 이미지 로딩 실패:', err);
+    }
+  };
 
-  // 🔥 Unsplash 백엔드 프록시로 이미지 불러오기
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const res1 = await fetch(`/api/unsplash?q=${encodeURIComponent(topicA)}`);
-        const res2 = await fetch(`/api/unsplash?q=${encodeURIComponent(topicB)}`);
-        const data1 = await res1.json();
-        const data2 = await res2.json();
-        setLeftImage(data1.url);
-        setRightImage(data2.url);
-      } catch (err) {
-        console.error('배경 이미지 로딩 실패:', err);
-      }
-    };
-    fetchImages();
-  }, [topicA, topicB]);
+  fetchImages();
+}, [topicA, topicB]);
+
 
   return (
     <div className="min-h-screen relative">
