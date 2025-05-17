@@ -30,9 +30,14 @@ export default function MainPage() {
     navigate('/rankings');
   };
 
-  const today = new Date().toISOString().slice(0, 10);
-  const topicSet = topicsByDate[today] || topicsByDate.default;
-  const [topicA, topicB] = topicSet.topics || ['고양이', '강아지'];
+  const today = new Date().toLocaleDateString('ko-KR', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+}).replace(/\. /g, '-').replace('.', '');
+  const topicSet = topicsByDate[today];
+  const [topicA, topicB] = topicSet.topics;
 // 🔥 Unsplash 백엔드 프록시로 이미지 불러오기
 useEffect(() => {
   const BASE_URL = import.meta.env.PROD
