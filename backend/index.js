@@ -6,6 +6,7 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 import db from './db.js';
 import path from 'path';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -13,7 +14,10 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const GROK_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://vsdebategame.vercel.app'
+}));
+
 app.use(express.json());
 
 // 테이블 초기화 

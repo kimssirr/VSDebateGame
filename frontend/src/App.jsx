@@ -8,6 +8,7 @@ import RankingsPage from './pages/RankingsPage';
 import RankingSavePage from './pages/RankingSavePage';
 
 
+
 export default function App() {
   return (
     <Router>

@@ -4,26 +4,30 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
+import { BASE_URL } from '../lib/constants'; // 상단에 추가
+
 
 export default function RankingsPage() {
   const [rankings, setRankings] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchRankings = async () => {
-      try {
-        const res = await fetch('/api/rankings');
-        const data = await res.json();
-        setRankings(data);
-      } catch (err) {
-        console.error('랭킹 불러오기 실패:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRankings();
-  }, []);
+
+useEffect(() => {
+  const fetchRankings = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/rankings`);
+      const data = await res.json();
+      setRankings(data);
+    } catch (err) {
+      console.error('랭킹 불러오기 실패:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchRankings();
+}, []);
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
