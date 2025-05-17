@@ -14,9 +14,11 @@ const PORT = process.env.PORT || 3001;
 const GROK_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 app.use(cors({
-  origin: 'https://vsdebategame.vercel.app'
+  origin: [
+    'https://vsdebategame.vercel.app',
+    'https://vs-debate-game.vercel.app' 
+  ]
 }));
-
 app.use(express.json());
 
 // 테이블 초기화 
