@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { BASE_URL } from '../lib/constants'; 
+import { BASE_URL } from '../lib/constants'; // 상단에 추가
 
 
 export default function RankingsPage() {
@@ -41,17 +41,15 @@ useEffect(() => {
             <p>아직 기록이 없습니다.</p>
           ) : (
             <ul className="text-left space-y-4">
-  {rankings.map((r, i) => (
-    <li key={i} className="border p-3 rounded-md">
-      <p className="font-bold">
-        {i + 1}위 - {r.username} : 설득력 {r.averageScore}점
-      </p>
-      <p className="text-sm text-gray-700">🗳️ 주제: {r.topic || '주제 없음'}</p>
-      <p className="text-sm italic text-gray-600">“{r.quote || '명대사 없음'}”</p>
-    </li>
-  ))}
-</ul>
-
+     {rankings.map((r, i) => (
+     <li key={i} className="border p-3 rounded-md">
+       <p className="font-bold">
+          {i + 1}위 - {r.username} : 설득력 {r.averageScore}%
+         </p>
+         <p className="text-sm italic text-gray-600">“{r.quote || '명대사 없음'}”</p>
+       </li>
+     ))}
+    </ul>
 
           )}
 
