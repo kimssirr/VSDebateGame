@@ -45,7 +45,7 @@ ${formatMessages}
       const res = await callGrok(prompt);
       setResultText(res);
 
-      const winnerMatch = res.match(/(사용자|AI)/);
+      const winnerMatch = res.match(/승자:\s*(사용자|AI)/);
       const scoreMatch = res.match(/사용자\s*([0-9]{1,3})%/);
 
       if (winnerMatch) {
