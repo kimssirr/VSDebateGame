@@ -88,9 +88,15 @@ export default function MainPage() {
       </div>
 
       {/* 중앙 콘텐츠 */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
-        <Card className="max-w-xl w-full">
-          <CardContent className="text-center space-y-6 p-6">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
+        {/* ✅ 여기서부터 og-image 시각적 표시 */}
+        <img
+        src="/og-image.png"
+        alt="VS 토론 게임 대표 이미지"
+        className="w-48 h-auto mb-6 rounded-lg shadow-lg"
+        />
+        <Card className="max-w-sm">
+          <CardContent className="text-center space-y-4 p-1">
             <h1 className="text-3xl sm:text-4xl font-bold">VS 토론 게임</h1>
             <p className="text-lg sm:text-xl">
               오늘의 토론 주제 - <strong>{topicA} vs {topicB}</strong>

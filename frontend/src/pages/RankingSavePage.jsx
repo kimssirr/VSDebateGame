@@ -5,6 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 
+const BASE_URL = import.meta.env.PROD
+  ? 'https://vsdebategame.onrender.com'
+  : '';
+
 export default function RankingSavePage() {
   const [result, setResult] = useState(null);
   const navigate = useNavigate();
@@ -42,7 +46,7 @@ export default function RankingSavePage() {
     console.log("✅ 추출된 명대사:", bestQuote);
     console.log("✅ 저장할 점수:", score);
 
-    fetch('/api/rankings', {
+    fetch(`${BASE_URL}/api/rankings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, score, quote: bestQuote }),
