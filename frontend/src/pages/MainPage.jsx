@@ -11,10 +11,16 @@ export default function MainPage() {
   const [username, setUsername] = useState('');
   const [leftImage, setLeftImage] = useState('');
   const [rightImage, setRightImage] = useState('');
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
     const storedName = localStorage.getItem('username');
     if (storedName) setUsername(storedName);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleStart = () => {
@@ -31,35 +37,36 @@ export default function MainPage() {
   };
 
   const today = new Date().toLocaleDateString('ko-KR', {
-  timeZone: 'Asia/Seoul',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit'
-}).replace(/\. /g, '-').replace('.', '');
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).replace(/\. /g, '-').replace('.', '');
+
   const topicSet = topicsByDate[today];
   const [topicA, topicB] = topicSet.topics;
-// 🔥 Unsplash 백엔드 프록시로 이미지 불러오기
-useEffect(() => {
-  const BASE_URL = import.meta.env.PROD
-    ? 'https://vsdebategame.onrender.com' // ← 네 백엔드 주소
-    : '';
 
-  const fetchImages = async () => {
-    try {
-      const res1 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(topicA)}`);
-      const res2 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(topicB)}`);
-      const data1 = await res1.json();
-      const data2 = await res2.json();
-      setLeftImage(data1.url);
-      setRightImage(data2.url);
-    } catch (err) {
-      console.error('배경 이미지 로딩 실패:', err);
-    }
-  };
+  // 🔥 Unsplash 백엔드 프록시로 이미지 불러오기
+  useEffect(() => {
+    const BASE_URL = import.meta.env.PROD
+      ? 'https://vsdebategame.onrender.com'
+      : '';
 
-  fetchImages();
-}, [topicA, topicB]);
+    const fetchImages = async () => {
+      try {
+        const res1 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(topicA)}`);
+        const res2 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(topicB)}`);
+        const data1 = await res1.json();
+        const data2 = await res2.json();
+        setLeftImage(data1.url);
+        setRightImage(data2.url);
+      } catch (err) {
+        console.error('배경 이미지 로딩 실패:', err);
+      }
+    };
 
+    fetchImages();
+  }, [topicA, topicB]);
 
   return (
     <div className="min-h-screen relative">
@@ -73,6 +80,11 @@ useEffect(() => {
           className="w-1/2 h-full bg-cover bg-center"
           style={{ backgroundImage: `url(${rightImage})`, opacity: 0.7 }}
         />
+      </div>
+
+      {/* 상단 현재 시간 */}
+      <div className="absolute top-4 right-4 z-20 text-sm text-white bg-black/60 px-3 py-1 rounded shadow">
+        🕒 {now.toLocaleDateString('ko-KR')} {now.toLocaleTimeString('ko-KR')}
       </div>
 
       {/* 중앙 콘텐츠 */}
