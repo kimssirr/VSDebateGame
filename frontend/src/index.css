@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 사용자 지정 스타일 (선택사항) */
+body {
+  @apply bg-gray-100 text-gray-900 font-sans;
+}
+
+html, body, #root {
+  height: 100%;
+}
