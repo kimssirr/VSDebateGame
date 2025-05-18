@@ -5,16 +5,28 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { callGrok } from '../api/grok';
+import topicsByDate from '../data/topicsByDate'; 
+
 
 export default function GamePage() {
+  // 오늘 날짜 구하기 (한국 시간 기준)
+const today = new Date().toLocaleDateString('ko-KR', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).replace(/\. /g, '-').replace('.', '');
+
+// 오늘의 주제 불러오기
+const topicSet = topicsByDate[today] || topicsByDate.default;
+const topicChoices = topicSet.topics;
+
   const navigate = useNavigate();
   const [playerPick, setPlayerPick] = useState(null);
   const [aiPick, setAiPick] = useState(null);
   const [messages, setMessages] = useState([]); // {sender: 'ai' | 'user', text: ''}
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const topicChoices = ['사자', '호랑이'];
 
   const handlePick = async (pick) => {
     const aiChoice = topicChoices.find(c => c !== pick);

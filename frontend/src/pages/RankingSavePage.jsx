@@ -16,6 +16,13 @@ export default function RankingSavePage() {
   useEffect(() => {
     console.log("🏁 랭킹 저장 페이지 시작");
 
+     const winner = localStorage.getItem('lastWinner');
+    if (winner === 'AI') {
+    console.warn('❌ AI 승리: 랭킹 기록 차단');
+    setResult('AI가 승리한 경우 랭킹에 기록되지 않습니다.');
+    return;
+  }
+
     const username = localStorage.getItem('username');
     const scoreRaw = localStorage.getItem('lastScore');
     const messagesRaw = localStorage.getItem('lastMessages');

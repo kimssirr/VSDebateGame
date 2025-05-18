@@ -99,7 +99,7 @@ export default function MainPage() {
           <CardContent className="text-center space-y-4 p-1">
             <h1 className="text-3xl sm:text-4xl font-bold">VS 토론 게임</h1>
             <p className="text-lg sm:text-xl">
-              오늘의 토론 주제 - <strong>{topicA} vs {topicB}</strong>
+              오늘의 토론 주제<br></br><strong>{topicA} vs {topicB}</strong>
             </p>
 
             <input

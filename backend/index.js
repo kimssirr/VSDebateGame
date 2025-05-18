@@ -75,22 +75,35 @@ app.get('/api/rankings', (req, res) => {
   }
 });
 
-//unsplash api
+const imageCache = {};
+
 app.get('/api/unsplash', async (req, res) => {
   const query = req.query.q;
   const key = process.env.UNSPLASH_ACCESS_KEY;
   if (!key || !query) return res.status(400).json({ error: 'Missing API key or query' });
 
+  // 캐시된 이미지가 있다면 그대로 반환
+  if (imageCache[query]) {
+    return res.json({ url: imageCache[query] });
+  }
+
   try {
     const apiUrl = `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${key}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
-    res.json({ url: data?.urls?.regular || null });
+    const imageUrl = data?.urls?.regular || null;
+
+    if (imageUrl) {
+      imageCache[query] = imageUrl;
+    }
+
+    res.json({ url: imageUrl });
   } catch (err) {
     console.error('Unsplash API 오류:', err);
     res.status(500).json({ error: '이미지 요청 실패' });
   }
 });
+
 
 
 // Grok API 프록시

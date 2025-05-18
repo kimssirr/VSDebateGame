@@ -94,9 +94,14 @@ ${formatMessages}
             </div>
           )}
           <div className="flex justify-center gap-4 flex-wrap">
-            <Button onClick={() => navigate('/')}>다시 시작</Button>
-            <Button onClick={() => navigate('/rankingSave')}>랭킹 기록</Button>
-          </div>
+        <Button onClick={() => navigate('/')}>다시 시작</Button>
+
+        {/* ✅ 사용자만 랭킹 기록 버튼 표시 */}
+        {winner === '사용자' && (
+          <Button onClick={() => navigate('/rankingSave')}>랭킹 기록</Button>
+        )}
+        </div>
+
         </CardContent>
       </Card>
     </div>
