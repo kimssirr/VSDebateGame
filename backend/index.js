@@ -15,20 +15,20 @@ const GROK_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 app.use(cors({
   origin: [
-    'https://vsdebategame.vercel.app',
+    'http://localhost:5173',
     'https://vs-debate-game.vercel.app' 
   ]
 }));
 app.use(express.json());
 
-// 테이블 초기화 
 db.exec(`
   CREATE TABLE IF NOT EXISTS rankings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
     score REAL,
     date TEXT NOT NULL,
-    quote TEXT
+    quote TEXT,
+    isWinner INTEGER DEFAULT 0 
   )
 `);
 
@@ -61,7 +61,8 @@ app.get('/api/rankings', (req, res) => {
       SELECT username,
              COUNT(*) AS games,
              ROUND(AVG(score), 1) AS averageScore,
-             MAX(quote) AS quote
+             MAX(quote) AS quote,
+             MAX(isWinner) AS isWinner
       FROM rankings
       WHERE date = ?
       GROUP BY username

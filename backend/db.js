@@ -11,8 +11,10 @@ db.exec(`
     username TEXT NOT NULL,
     score REAL,
     date TEXT NOT NULL,
-    quote TEXT
+    quote TEXT,
+    isWinner INTEGER DEFAULT 0 
   )
 `);
+
 
 export default db;

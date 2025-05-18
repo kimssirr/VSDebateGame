@@ -1,2 +1,3 @@
-// src/lib/constants.js
-export const BASE_URL = 'https://vsdebategame.onrender.com';
+export const BASE_URL = import.meta.env.PROD
+  ? 'https://vsdebategame.onrender.com'
+  : 'http://localhost:3001'; 

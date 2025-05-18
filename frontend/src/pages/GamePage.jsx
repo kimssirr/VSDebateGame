@@ -80,13 +80,14 @@ const topicChoices = topicSet.topics;
       <header className="text-center text-xl font-bold mb-2">당신의 선택: {playerPick}</header>
 
       <div className="flex-1 bg-white rounded-xl shadow p-4 overflow-y-auto space-y-2">
+        <p>* 당신의 대사는 랭킹 명대사에 반영될 수 있습니다.</p>
         {messages.map((m, i) => (
           <div key={i} className={`text-sm p-2 rounded ${m.sender === 'ai' ? 'bg-blue-100 text-left' : 'bg-green-100 text-right'}`}>
             <strong>{m.sender === 'ai' ? 'AI' : '당신'}:</strong> {m.text}
           </div>
         ))}
+      
       </div>
-
       <div className="mt-4 space-y-2">
         <textarea
           className="w-full border rounded p-2"
