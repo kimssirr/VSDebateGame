@@ -52,6 +52,23 @@ app.get('/api/rankings', async (req, res) => {
   if (isNaN(days) || days < 0) days = 0;
 
   try {
+    // 한국 시간 기준 날짜 범위 계산
+    const now = new Date();
+
+    // 현재 시간을 한국 시간으로 보정
+    const kstOffset = 9 * 60; // 9시간 → 분 단위
+    const localNow = new Date(now.getTime() + kstOffset * 60 * 1000);
+
+    // 기준일의 자정부터 계산 (KST 기준)
+    localNow.setHours(0, 0, 0, 0);
+    localNow.setDate(localNow.getDate() - days);
+
+    const start = new Date(localNow);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+
+    // 쿼리문: 하루 범위에 해당하는 데이터만 조회
     const stmt = `
       SELECT 
         username,
@@ -59,15 +76,20 @@ app.get('/api/rankings', async (req, res) => {
         MAX(quote) AS quote,
         MAX(CAST(iswinner AS INT)) AS iswinner_int
       FROM rankings
-      WHERE date::date = CURRENT_DATE - INTERVAL '${days} days'
+      WHERE 
+        date >= $1 AND date < $2
       GROUP BY username
       ORDER BY 
         MAX(CAST(iswinner AS INT)) DESC,
         MAX(score) DESC
     `;
 
-    const { rows } = await db.query(stmt);
+    const { rows } = await db.query(stmt, [
+      start.toISOString(),
+      end.toISOString()
+    ]);
 
+    // isWinner 정리
     const converted = rows.map(row => ({
       ...row,
       isWinner: row.iswinner_int === 1
@@ -80,37 +102,6 @@ app.get('/api/rankings', async (req, res) => {
   }
 });
 
-
-/**
- * Unsplash 이미지 API
- */
-const imageCache = {};
-
-app.get('/api/unsplash', async (req, res) => {
-  const query = req.query.q;
-  const key = process.env.UNSPLASH_ACCESS_KEY;
-  if (!key || !query) return res.status(400).json({ error: 'Missing API key or query' });
-
-  if (imageCache[query]) {
-    return res.json({ url: imageCache[query] });
-  }
-
-  try {
-    const apiUrl = `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${key}`;
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    const imageUrl = data?.urls?.regular || null;
-
-    if (imageUrl) {
-      imageCache[query] = imageUrl;
-    }
-
-    res.json({ url: imageUrl });
-  } catch (err) {
-    console.error('Unsplash API 오류:', err);
-    res.status(500).json({ error: '이미지 요청 실패' });
-  }
-});
 
 /**
  * Grok 프록시 API
