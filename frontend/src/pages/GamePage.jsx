@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/button';
+import { Button, ButtonVS1, ButtonVS2 } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { callGrok } from '../api/grok';
 import topicsByDate from '../data/topicsByDate'; 
@@ -33,7 +33,10 @@ const topicChoices = topicSet.topics;
     setPlayerPick(pick);
     setAiPick(aiChoice);
     setLoading(true);
-    const aiIntro = await callGrok(`${aiChoice}가 ${pick}보다 더 강력한 이유를 하나의 문장으로 설명해줘. 오직 한국말로.`);
+    const aiIntro = await callGrok(
+      `너는 지금부터 진지한 토론자로서, ${aiChoice}가 ${pick}보다 더 좋은 이유를 하나의 문장으로 설명해줘. 오직 한국말로.
+      목표는 '재미있고 깊이 있는 대화'를 이끌어내는 것.
+      `);
     setMessages([{ sender: 'ai', text: aiIntro }]);
     setLoading(false);
   };
@@ -45,10 +48,14 @@ const topicChoices = topicSet.topics;
     setInputText('');
     setLoading(true);
 
-    if (updatedMessages.filter(m => m.sender === 'user').length >= 5) return;
+    if (updatedMessages.filter(m => m.sender === 'user').length >= 10) return;
 
     const lastUserMessage = updatedMessages[updatedMessages.length - 1].text;
-    const aiResponse = await callGrok(`너는 ${aiPick}가 더 쎄거나 좋다는 입장이야. 다음 사용자 말에 한 문장으로 반론해줘: "${lastUserMessage}. 무조건 한국말로 말해주세요. 한자, 일본어 안됩니다.    "`);
+    const aiResponse = await callGrok(`너는 ${aiPick}가 더 좋다는 입장이야. 다음 사용자 말에 한 문장으로 반론해줘: ${lastUserMessage}. 
+      무조건 한국말로 말해주세요. 한자, 일본어 안됩니다.
+      말투는 논리적이고, 때론 도발적으로 유도 질문을 던져야 해.
+      목표는 '재미있고 깊이 있는 대화'를 이끌어내는 것.
+      사용자가 어떤 주장을 하든 반론을 펼쳐야 하며, 유쾌하게 대립각을 세워야 한다.`);
 
     setMessages([...updatedMessages, { sender: 'ai', text: aiResponse }]);
     setLoading(false);
@@ -64,11 +71,14 @@ const topicChoices = topicSet.topics;
         <Card className="max-w-xl w-full">
           <CardContent className="space-y-4 p-6 text-center">
             <h2 className="text-2xl font-bold">어떤 쪽을 선택하시겠어요?</h2>
-            <div className="flex justify-center gap-4">
-              {topicChoices.map(choice => (
-                <Button key={choice} onClick={() => handlePick(choice)}>{choice}</Button>
-              ))}
-            </div>
+              <div className="flex justify-center gap-4">
+                <ButtonVS1 onClick={() => handlePick(topicChoices[0])}>
+                  {topicChoices[0]}
+                </ButtonVS1>
+                <ButtonVS2 onClick={() => handlePick(topicChoices[1])}>
+                  {topicChoices[1]}
+                </ButtonVS2>
+              </div>
           </CardContent>
         </Card>
       </div>
@@ -81,6 +91,7 @@ const topicChoices = topicSet.topics;
 
       <div className="flex-1 bg-white rounded-xl shadow p-4 overflow-y-auto space-y-2">
         <p>* 당신의 대사는 랭킹 명대사에 반영될 수 있습니다.</p>
+        <p>* 최대 10번의 대화가 가능합니다.</p>
         {messages.map((m, i) => (
           <div key={i} className={`text-sm p-2 rounded ${m.sender === 'ai' ? 'bg-blue-100 text-left' : 'bg-green-100 text-right'}`}>
             <strong>{m.sender === 'ai' ? 'AI' : '당신'}:</strong> {m.text}

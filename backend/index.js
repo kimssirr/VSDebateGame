@@ -1,11 +1,10 @@
-// ✅ 백엔드 - backend/index.js 
+// backend/index.js
 
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import db from './db.js';
-import path from 'path';
 
 dotenv.config();
 
@@ -16,35 +15,28 @@ const GROK_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://vs-debate-game.vercel.app' 
+    'https://vs-debate-game.vercel.app'
   ]
 }));
 app.use(express.json());
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS rankings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL,
-    score REAL,
-    date TEXT NOT NULL,
-    quote TEXT,
-    isWinner INTEGER DEFAULT 0 
-  )
-`);
-
-
-// 결과 저장
-app.post('/api/rankings', (req, res) => {
-  const { username, score, quote } = req.body;
-  const today = new Date().toISOString().slice(0, 10);
+/**
+ * 랭킹 저장
+ */
+app.post('/api/rankings', async (req, res) => {
+  const { username, score, quote, isWinner = false } = req.body;
+  const now = new Date().toISOString();
 
   if (!username || typeof score !== 'number') {
     return res.status(400).json({ error: '이름 또는 점수가 잘못되었습니다.' });
   }
 
   try {
-    const stmt = db.prepare('INSERT INTO rankings (username, score, date, quote) VALUES (?, ?, ?, ?)');
-    stmt.run(username, score, today, quote);
+    const stmt = `
+      INSERT INTO rankings (username, score, date, quote, isWinner)
+      VALUES ($1, $2, $3, $4, $5)
+    `;
+    await db.query(stmt, [username, score, now, quote, isWinner]);
     res.json({ success: true });
   } catch (error) {
     console.error('DB 저장 실패:', error);
@@ -52,23 +44,26 @@ app.post('/api/rankings', (req, res) => {
   }
 });
 
-// 오늘의 랭킹 조회 (score 평균 기준 정렬)
-app.get('/api/rankings', (req, res) => {
-  const today = new Date().toISOString().slice(0, 10);
+/**
+ * 날짜 기준 랭킹 조회
+ */
+app.get('/api/rankings', async (req, res) => {
+  let days = parseInt(req.query.days || '0', 10);
+  if (isNaN(days) || days < 0) days = 0;
 
   try {
-    const rows = db.prepare(`
+    const stmt = `
       SELECT username,
-             COUNT(*) AS games,
-             ROUND(AVG(score), 1) AS averageScore,
+             MAX(score) AS score,
              MAX(quote) AS quote,
-             MAX(isWinner) AS isWinner
+             MAX(CAST(isWinner AS INT)) AS isWinner
       FROM rankings
-      WHERE date = ?
+      WHERE date::date = CURRENT_DATE - INTERVAL '${days} days'
       GROUP BY username
-      ORDER BY averageScore DESC, games DESC
-    `).all(today);
+      ORDER BY score DESC
+    `;
 
+    const { rows } = await db.query(stmt);
     res.json(rows);
   } catch (error) {
     console.error('DB 조회 실패:', error);
@@ -76,6 +71,11 @@ app.get('/api/rankings', (req, res) => {
   }
 });
 
+
+
+/**
+ * Unsplash 이미지 API
+ */
 const imageCache = {};
 
 app.get('/api/unsplash', async (req, res) => {
@@ -83,7 +83,6 @@ app.get('/api/unsplash', async (req, res) => {
   const key = process.env.UNSPLASH_ACCESS_KEY;
   if (!key || !query) return res.status(400).json({ error: 'Missing API key or query' });
 
-  // 캐시된 이미지가 있다면 그대로 반환
   if (imageCache[query]) {
     return res.json({ url: imageCache[query] });
   }
@@ -105,9 +104,9 @@ app.get('/api/unsplash', async (req, res) => {
   }
 });
 
-
-
-// Grok API 프록시
+/**
+ * Grok 프록시 API
+ */
 app.post('/api/grok', async (req, res) => {
   const { prompt } = req.body;
   const apiKey = process.env.GROK_API_KEY;
@@ -125,9 +124,7 @@ app.post('/api/grok', async (req, res) => {
       },
       body: JSON.stringify({
         model: 'llama3-70b-8192',
-        messages: [
-          { role: 'user', content: prompt },
-        ],
+        messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
       })
     });
@@ -142,5 +139,5 @@ app.post('/api/grok', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Grok API 서버 실행 중: http://localhost:${PORT}`);
+  console.log(`✅ 서버 실행 중: http://localhost:${PORT}`);
 });

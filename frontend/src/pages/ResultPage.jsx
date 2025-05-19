@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
+import { RankingButton } from '../components/ui/rankingButton';
 import { Card, CardContent } from '../components/ui/card';
 import { callGrok } from '../api/grok';
 
@@ -19,22 +20,30 @@ export default function ResultPage() {
     if (!messages || messages.length === 0) return;
     const prepareJudgement = async () => {
       const formatMessages = messages.map((m, i) => `${m.sender === 'ai' ? 'AI' : '사용자'}: ${m.text}`).join('\n');
-      const prompt = `다음은 사용자와 AI 간의 토론 내용입니다. 최대 5개의 메시지를 주고받을 수 있으며, 중간에 종료될 수도 있습니다. 아래 기준에 따라 누가 더 설득력 있었는지 평가하세요.
+      const prompt = `다음은 사용자와 AI 간의 토론 내용입니다.  
+당신은 공정한 심판으로서, 오직 **내용만 보고 판단**해야 합니다.  
+AI라고 해서 더 잘했다고 생각하지 마세요.  
+오히려 사람이 만든 주장에는 현실적인 설득력이 있을 수 있습니다.
+AI가 논리적으로 정확하더라도, 현실적이지 않거나 와닿지 않으면 감점해도 된다.
 
 [평가 기준] (총점 100점)
-1. 논리적 타당성 (40점) 주장과 근거가 얼마나 일관되고 논리적으로 연결되어 있는가
-2. 신박함/창의성 (30점) 예상치 못한 시각 제시 여부
-3. 반박의 적절성 (20점) 상대의 주장에 대한 반론이 얼마나 적절하고 설득력 있는가
-4. 표현력 및 명확성 (10점) 문장이 얼마나 명확하고 설득력 있게 전달되었는가
+1. 현실 공감도 (40점): 청중(일반 사용자)이 공감하거나 일상 경험에 기반했는가?
+2. 창의성 (30점): 예상치 못한 발상, 유쾌한 방식이 있는가?
+3. 반박력 (20점): 상대 주장에 어떻게 반응했는가?
+4. 간결·명확한 표현 (10점): 불필요한 수식 없이 의도를 잘 전달했는가?
 
-각 기준에 대해 사용자와 AI에게 점수를 부여하고, 총점을 계산하세요. 아래 형식으로 결과를 한국어로만 작성해주세요:
+사용자와 AI 모두에게 점수를 부여해주세요.
 
-- 사용자 점수: 논리력 XX.X / 창의성 XX.X / 반박력 XX.X / 표현력 XX.X → 총합 XXX.X점
-- AI 점수: 논리력 XX.X / 창의성 XX.X / 반박력 XX.X / 표현력 XX.X → 총합 XXX.X점
+
+[출력 형식 예시]
+- 사용자 점수: 총합 XXX.X점
+- AI 점수: 총합 XXX.X점
 - 승자: 사용자 또는 AI
 - 이유: 간단히 설명해주세요.
 
 [토론 내용]
+${formatMessages}
+
 
 ${formatMessages}
 
@@ -99,7 +108,7 @@ ${formatMessages}
           )}
           <div className="flex justify-center gap-4 flex-wrap">
             <Button onClick={() => navigate('/')}>다시 시작</Button>
-            <Button onClick={() => navigate('/rankingSave')}>랭킹 기록</Button>
+            <RankingButton onClick={() => navigate('/rankingSave')}>랭킹 기록</RankingButton>
           </div>
         </CardContent>
       </Card>

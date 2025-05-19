@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
+import { RankingButton } from '../components/ui/rankingButton';
 import { Card, CardContent } from '../components/ui/card';
 import topicsByDate from '../data/topicsByDate';
 
@@ -36,37 +37,41 @@ export default function MainPage() {
     navigate('/rankings');
   };
 
-  const today = new Date().toLocaleDateString('ko-KR', {
-    timeZone: 'Asia/Seoul',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).replace(/\. /g, '-').replace('.', '');
 
-  const topicSet = topicsByDate[today];
-  const [topicA, topicB] = topicSet.topics;
+    const today = new Date().toLocaleDateString('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).replace(/\. /g, '-').replace('.', '');
 
   // 🔥 Unsplash 백엔드 프록시로 이미지 불러오기
   useEffect(() => {
-    const BASE_URL = import.meta.env.PROD
-      ? 'https://vsdebategame.onrender.com'
-      : '';
+  const BASE_URL = import.meta.env.PROD ? 'https://vsdebategame.onrender.com' : '';
 
-    const fetchImages = async () => {
-      try {
-        const res1 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(topicA)}`);
-        const res2 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(topicB)}`);
-        const data1 = await res1.json();
-        const data2 = await res2.json();
-        setLeftImage(data1.url);
-        setRightImage(data2.url);
-      } catch (err) {
-        console.error('배경 이미지 로딩 실패:', err);
-      }
-    };
+  const fetchImages = async () => {
 
-    fetchImages();
-  }, [topicA, topicB]);
+
+    const topicData = topicsByDate[today];
+    if (!topicData) return;
+
+    const [enA, enB] = topicData.translated;
+    try {
+      const res1 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(enA)}`);
+      const res2 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(enB)}`);
+      const data1 = await res1.json();
+      const data2 = await res2.json();
+      setLeftImage(data1.url);
+      setRightImage(data2.url);
+    } catch (err) {
+      console.error('배경 이미지 로딩 실패:', err);
+    }
+  };
+
+  fetchImages();
+}, []);
+  const topicSet = topicsByDate[today];
+  const [topicA, topicB] = topicSet.topics;
 
   return (
     <div className="min-h-screen relative">
@@ -97,7 +102,10 @@ export default function MainPage() {
         />
         <Card className="max-w-sm">
           <CardContent className="text-center space-y-4 p-1">
-            <h1 className="text-3xl sm:text-4xl font-bold">VS 토론 게임</h1>
+            <h1 className="text-2xl sm:text-3xl  font-extrabold text-center bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text drop-shadow-lg">
+  네 말이 틀렸어, AI야!
+</h1>
+
             <p className="text-lg sm:text-xl">
               오늘의 토론 주제<br></br><strong>{topicA} vs {topicB}</strong>
             </p>
@@ -112,7 +120,7 @@ export default function MainPage() {
 
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button onClick={handleStart} variant="outline">게임 시작</Button>
-              <Button onClick={handleRankings} variant="outline">랭킹 보기</Button>
+              <RankingButton onClick={handleRankings} variant="outline">랭킹 보기</RankingButton>
             </div>
           </CardContent>
         </Card>
