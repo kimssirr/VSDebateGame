@@ -38,7 +38,17 @@ export default function RankingsPage() {
           return;
         }
 
-        setRankings(data);
+        setRankings(
+          data.sort((a, b) => {
+            // 1순위: 이긴 사람 먼저 (true는 1, false는 0 → 큰 게 먼저)
+            if (a.isWinner !== b.isWinner) {
+              return (b.isWinner ? 1 : 0) - (a.isWinner ? 1 : 0);
+            }
+            // 2순위: 점수 높은 순
+            return b.score - a.score;
+          })
+        );
+
       } catch (err) {
         console.error('랭킹 불러오기 실패:', err);
         setRankings([]);
@@ -55,6 +65,7 @@ export default function RankingsPage() {
     setDaysAgo(selectedDaysAgo);
     setSearchParams({ days: selectedDaysAgo.toString() });
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -79,27 +90,31 @@ export default function RankingsPage() {
             <Button2 onClick={handleSearch}>조회</Button2>
           </div>
 
-          {loading ? (
-            <p>불러오는 중...</p>
-          ) : rankings.length === 0 ? (
-            <p>아직 기록이 없습니다.</p>
-          ) : (
-            <ul className="text-left space-y-4">
-              {rankings.map((r, i) => (
-                <li
-                  key={i}
-                  className={`border p-3 rounded-md ${
-                    r.isWinner === 1 ? 'bg-yellow-100' : 'bg-red-100'
-                  }`}
-                >
-                  <p className="font-bold">
-                    {i + 1}위 - {r.username} : 설득력 {r.score}%
-                  </p>
-                  <p className="text-sm italic text-gray-600">“{r.quote || '명대사 없음'}”</p>
-                </li>
-              ))}
-            </ul>
-          )}
+{loading ? (
+  <p>불러오는 중...</p>
+) : rankings.length === 0 ? (
+  <p>아직 기록이 없습니다.</p>
+) : (
+  <ul className="text-left space-y-4">
+  {rankings.map((r, i) => {
+    return (
+      <li
+        key={i}
+        className={`border p-3 rounded-md ${
+          r.isWinner ? 'bg-yellow-100' : 'bg-red-100'
+        }`}
+      >
+        <p className="font-bold">
+          {i + 1}위 - {r.username} : 설득력 {r.score}%
+        </p>
+        <p className="text-sm italic text-gray-600">“{r.quote || '명대사 없음'}”</p>
+      </li>
+    );
+  })}
+</ul>
+
+)}
+
 
           <Button onClick={() => navigate('/')}>홈으로</Button>
         </CardContent>

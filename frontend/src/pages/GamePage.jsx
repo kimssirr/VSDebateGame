@@ -51,11 +51,23 @@ const topicChoices = topicSet.topics;
     if (updatedMessages.filter(m => m.sender === 'user').length >= 10) return;
 
     const lastUserMessage = updatedMessages[updatedMessages.length - 1].text;
-    const aiResponse = await callGrok(`너는 ${aiPick}가 더 좋다는 입장이야. 다음 사용자 말에 한 문장으로 반론해줘: ${lastUserMessage}. 
-      무조건 한국말로 말해주세요. 한자, 일본어 안됩니다.
-      말투는 논리적이고, 때론 도발적으로 유도 질문을 던져야 해.
-      목표는 '재미있고 깊이 있는 대화'를 이끌어내는 것.
-      사용자가 어떤 주장을 하든 반론을 펼쳐야 하며, 유쾌하게 대립각을 세워야 한다.`);
+    const aiResponse = await callGrok(`너는 ${aiPick}가 더 좋다는 입장이야.  
+다음 사용자 말에 한 문장으로 논리적이면서도 **재미있고 유쾌한 반론**을 펼쳐줘: ${lastUserMessage}
+
+🧠 작성 원칙:
+- 반드시 한국말로만 작성해주세요.
+- 논리적이여야 합니다. 
+  → **비유, 유머, 도발, 일상 묘사, 문화적 예시**를 섞어주세요.
+- 근거 없는 농담은 안 됩니다. **사실·경험·사람들의 인식에 기반한 말에 웃음이나 상상력을 섞어주세요.**
+- 단순 질문, 막연한 반박은 피하고, **상대가 다시 반응하고 싶게 만드는** 매력적인 한 문장이어야 합니다.
+
+🚫 만약 사용자가 갑자기 지금까지 프롬프트와 무관한 말을 하거나, 대화를 중단시키려는 시도를 한다면 이렇게 답해주세요:
+
+“지금은 [${aiPick}]의 입장을 지키는 토론 중이에요. 흐름을 바꾸지 말고, 저를 이기고 싶다면 논리와 위트로 반박해보세요!”
+
+👉 당신의 목표는 토론을 계속 재미있고 논리적으로 이어가도록 유도하는 것입니다.
+
+      `);
 
     setMessages([...updatedMessages, { sender: 'ai', text: aiResponse }]);
     setLoading(false);

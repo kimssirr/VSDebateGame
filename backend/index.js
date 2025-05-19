@@ -33,7 +33,7 @@ app.post('/api/rankings', async (req, res) => {
 
   try {
     const stmt = `
-      INSERT INTO rankings (username, score, date, quote, isWinner)
+      INSERT INTO rankings (username, score, date, quote, iswinner)
       VALUES ($1, $2, $3, $4, $5)
     `;
     await db.query(stmt, [username, score, now, quote, isWinner]);
@@ -53,24 +53,32 @@ app.get('/api/rankings', async (req, res) => {
 
   try {
     const stmt = `
-      SELECT username,
-             MAX(score) AS score,
-             MAX(quote) AS quote,
-             MAX(CAST(isWinner AS INT)) AS isWinner
+      SELECT 
+        username,
+        MAX(score) AS score,
+        MAX(quote) AS quote,
+        MAX(CAST(iswinner AS INT)) AS iswinner_int
       FROM rankings
       WHERE date::date = CURRENT_DATE - INTERVAL '${days} days'
       GROUP BY username
-      ORDER BY score DESC
+      ORDER BY 
+        MAX(CAST(iswinner AS INT)) DESC,
+        MAX(score) DESC
     `;
 
     const { rows } = await db.query(stmt);
-    res.json(rows);
+
+    const converted = rows.map(row => ({
+      ...row,
+      isWinner: row.iswinner_int === 1
+    }));
+
+    res.json(converted);
   } catch (error) {
     console.error('DB 조회 실패:', error);
     res.status(500).json({ error: '랭킹 조회 실패' });
   }
 });
-
 
 
 /**
