@@ -25,7 +25,7 @@ app.use(express.json());
  */
 app.post('/api/rankings', async (req, res) => {
   const { username, score, quote, isWinner = false } = req.body;
-  const now = new Date().toISOString();
+  const now = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString(); //한국 시간 기준으로 저장
 
   if (!username || typeof score !== 'number') {
     return res.status(400).json({ error: '이름 또는 점수가 잘못되었습니다.' });

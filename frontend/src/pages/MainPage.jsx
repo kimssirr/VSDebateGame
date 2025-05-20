@@ -7,12 +7,23 @@ import { RankingButton } from '../components/ui/rankingButton';
 import { Card, CardContent } from '../components/ui/card';
 import topicsByDate from '../data/topicsByDate';
 
+
 export default function MainPage() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [leftImage, setLeftImage] = useState('');
   const [rightImage, setRightImage] = useState('');
+  const [showPatchNotes, setShowPatchNotes] = useState(false);
   const [now, setNow] = useState(new Date());
+  const [patchHtml, setPatchHtml] = useState('');
+
+  useEffect(() => {
+    fetch('/patchNotes.html')
+      .then(res => res.text())
+      .then(setPatchHtml)
+      .catch(() => setPatchHtml('<p class="text-sm text-red-500">패치노트를 불러오지 못했습니다.</p>'));
+  }, []);
+
 
   useEffect(() => {
     const storedName = localStorage.getItem('username');
@@ -121,6 +132,34 @@ export default function MainPage() {
       </CardContent>
     </Card>
   </main>
+
+  {/* 왼쪽 아래 패치노트 버튼 */}
+<button
+  className="fixed bottom-4 left-4 z-30 bg-white text-black border border-gray-300 rounded px-3 py-1 shadow hover:bg-gray-100"
+  onClick={() => setShowPatchNotes(true)}
+>
+ 패치 노트
+</button>
+{showPatchNotes && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+    <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      <button
+        className="absolute top-2 right-2 text-gray-500 hover:text-black text-lg"
+        onClick={() => setShowPatchNotes(false)}
+      >
+        ×
+      </button>
+
+      <div
+        className="prose text-sm"
+        dangerouslySetInnerHTML={{ __html: patchHtml }}
+      />
+    </div>
+  </div>
+)}
+
+
+
 
   {/* 푸터 */}
 <footer className="relative z-10 mt-auto w-full text-center text-black text-sm py-4">

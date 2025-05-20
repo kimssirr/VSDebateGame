@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, ButtonVS1, ButtonVS2 } from '../components/ui/button';
+import { Button, ButtonVS1, ButtonVS2, ButtonResult } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { callGrok } from '../api/grok';
 import topicsByDate from '../data/topicsByDate'; 
@@ -65,6 +65,8 @@ const topicChoices = topicSet.topics;
 
 “지금은 [${aiPick}]의 입장을 지키는 토론 중이에요. 흐름을 바꾸지 말고, 저를 이기고 싶다면 논리와 위트로 반박해보세요!”
 
+만약 사용자가 토론에 관계없는 반론을 할 시, 다시 토론을 이끌어주세요. 
+
 👉 당신의 목표는 토론을 계속 재미있고 논리적으로 이어가도록 유도하는 것입니다.
 
       `);
@@ -118,15 +120,24 @@ const topicChoices = topicSet.topics;
           value={inputText}
           onChange={e => setInputText(e.target.value)}
           placeholder="반론을 입력하세요"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault(); // 줄바꿈 방지
+              if (!loading && inputText.trim()) {
+                handleUserMessage(); // 전송 버튼과 동일한 로직
+              }
+            }
+          }}
         ></textarea>
+
         <div className="flex justify-between items-center">
           <Button disabled={loading || !inputText} onClick={handleUserMessage} type="button">
             전송
           </Button>
           {messages.filter(m => m.sender === 'user').length >= 1 && (
-            <Button onClick={handleShowResult} type="button">
+            <ButtonResult onClick={handleShowResult} type="button">
               토론 결과 보기
-            </Button>
+            </ButtonResult>
           )}
         </div>
       </div>

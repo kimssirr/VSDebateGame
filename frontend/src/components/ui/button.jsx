@@ -41,3 +41,14 @@ export function ButtonVS2({ children, ...props }) {
     </button>
   );
 }
+
+export function ButtonResult({ children, ...props }) {
+  return (
+    <button
+      className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 shadow-md transition-all"
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
