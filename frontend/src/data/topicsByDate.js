@@ -12,8 +12,8 @@ const topicsByDate = {
     translated: ['fish-shaped pastry', 'custard pastry'] // 또는 'Korean street food', 'taiyaki'
   },
   '2025-05-22': {
-    topics: ['용의 꼬리', '뱀의 머리'],
-    translated: ['dragon tail', 'snake head'] // 직역 외에 검색 결과는 적음
+    topics: ['딱딱 복숭아', '물렁 복숭아'],
+    translated: ['crunchy peach', 'soft peach']
   },
   '2025-05-23': {
     topics: ['바다', '산'],

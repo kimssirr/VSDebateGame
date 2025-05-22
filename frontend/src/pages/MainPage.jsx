@@ -56,24 +56,24 @@ export default function MainPage() {
       day: '2-digit'
     }).replace(/\. /g, '-').replace('.', '');
 
-  // 🔥 Unsplash 백엔드 프록시로 이미지 불러오기
+  // 🖼️ Pixabay API로 이미지 불러오기
   useEffect(() => {
   const BASE_URL = import.meta.env.PROD ? 'https://vsdebategame.onrender.com' : '';
 
   const fetchImages = async () => {
-
-
     const topicData = topicsByDate[today];
     if (!topicData) return;
 
     const [enA, enB] = topicData.translated;
     try {
-      const res1 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(enA)}`);
-      const res2 = await fetch(`${BASE_URL}/api/unsplash?q=${encodeURIComponent(enB)}`);
+      const res1 = await fetch(`${BASE_URL}/api/pixabay?q=${encodeURIComponent(enA)}`);
+      const res2 = await fetch(`${BASE_URL}/api/pixabay?q=${encodeURIComponent(enB)}`);
       const data1 = await res1.json();
       const data2 = await res2.json();
-      setLeftImage(data1.url);
-      setRightImage(data2.url);
+      
+      // Pixabay의 largeImageURL 사용
+      setLeftImage(data1.hits[0]?.largeImageURL || '');
+      setRightImage(data2.hits[0]?.largeImageURL || '');
     } catch (err) {
       console.error('배경 이미지 로딩 실패:', err);
     }
@@ -98,10 +98,7 @@ export default function MainPage() {
     />
   </div>
 
-  {/* 상단 현재 시간 */}
-  <div className="absolute top-4 right-4 z-20 text-sm text-white bg-black/60 px-3 py-1 rounded shadow">
-    🕒 {now.toLocaleDateString('ko-KR')} {now.toLocaleTimeString('ko-KR')}
-  </div>
+
 
   {/* 콘텐츠 영역 */}
   <main className="relative z-10 flex-grow flex flex-col items-center justify-center px-4">
@@ -161,10 +158,7 @@ export default function MainPage() {
 
 
 
-  {/* 푸터 */}
-<footer className="relative z-10 mt-auto w-full text-center text-black text-sm py-4">
-  © {new Date().getFullYear()} 네 말이 틀렸어, AI야! All rights reserved.
-</footer>
+
 
 </div>
 

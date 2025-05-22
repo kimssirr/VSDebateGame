@@ -24,78 +24,123 @@ app.use(express.json());
  * 랭킹 저장
  */
 app.post('/api/rankings', async (req, res) => {
-  const { username, score, quote, isWinner = false } = req.body;
-  const now = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString(); //한국 시간 기준으로 저장
-
-  if (!username || typeof score !== 'number') {
-    return res.status(400).json({ error: '이름 또는 점수가 잘못되었습니다.' });
-  }
-
   try {
-    const stmt = `
-      INSERT INTO rankings (username, score, date, quote, iswinner)
+    const { username, score, quote, isWinner, date } = req.body;
+
+    if (!username || typeof score !== 'number') {
+      return res.status(400).json({ error: '필수 정보 누락' });
+    }
+
+    // 클라이언트에서 KST 기준 ISO 문자열을 보냈으므로 그냥 저장
+    const insertDate = date ? new Date(date) : new Date();
+
+    await db.query(`
+      INSERT INTO rankings (username, score, quote, iswinner, date)
       VALUES ($1, $2, $3, $4, $5)
-    `;
-    await db.query(stmt, [username, score, now, quote, isWinner]);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('DB 저장 실패:', error);
-    res.status(500).json({ error: '랭킹 저장 실패' });
+    `, [username, score, quote, isWinner, insertDate]);
+
+    res.status(201).json({ message: '랭킹 저장 완료' });
+  } catch (err) {
+    console.error('랭킹 저장 실패:', err);
+    res.status(500).json({ error: '랭킹 저장 중 서버 오류' });
   }
 });
+
 
 /**
  * 날짜 기준 랭킹 조회
  */
 app.get('/api/rankings', async (req, res) => {
   let days = parseInt(req.query.days || '0', 10);
+  const cursor = req.query.cursor;
+  const limit = 10;
+
   if (isNaN(days) || days < 0) days = 0;
 
   try {
-    // 한국 시간 기준 날짜 범위 계산
+    const KST_OFFSET = 9 * 60 * 60 * 1000;
+
+    // 현재 시각 기준 KST 시간 만들기
     const now = new Date();
+    const kstNow = new Date(now.getTime() + KST_OFFSET);
 
-    // 현재 시간을 한국 시간으로 보정
-    const kstOffset = 9 * 60; // 9시간 → 분 단위
-    const localNow = new Date(now.getTime() + kstOffset * 60 * 1000);
+    // KST 기준 날짜 문자열 만들기 (요청한 daysAgo 반영)
+    const year = kstNow.getFullYear();
+    const month = String(kstNow.getMonth() + 1).padStart(2, '0');
+    const date = String(kstNow.getDate() - days).padStart(2, '0');
+    const kstDateString = `${year}-${month}-${date}`; // 예: 2025-05-21
 
-    // 기준일의 자정부터 계산 (KST 기준)
-    localNow.setHours(0, 0, 0, 0);
-    localNow.setDate(localNow.getDate() - days);
+    // 해당 날짜의 KST 자정 기준 UTC 시간 계산
+    const startUtc = new Date(`${kstDateString}T00:00:00+09:00`);
+    const endUtc = new Date(`${kstDateString}T24:00:00+09:00`);
 
-    const start = new Date(localNow);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
+    // 디버깅용 로그
+    // console.log('조회 범위 (KST):',
+    //   new Date(startUtc.getTime() + KST_OFFSET).toLocaleString('ko-KR'),
+    //   '~',
+    //   new Date(endUtc.getTime() + KST_OFFSET).toLocaleString('ko-KR')
+    // );
 
+    let cursorCondition = '';
+    let params = [startUtc.toISOString(), endUtc.toISOString()];
 
-    // 쿼리문: 하루 범위에 해당하는 데이터만 조회
+    if (cursor) {
+      const [cursorScore, cursorUsername] = cursor.split('::');
+      cursorCondition = `
+        AND (
+          score < $3 
+          OR (score = $3 AND username > $4)
+        )
+      `;
+      params.push(parseFloat(cursorScore), cursorUsername);
+    }
+
     const stmt = `
+    WITH RankedData AS (
       SELECT 
         username,
-        MAX(score) AS score,
-        MAX(quote) AS quote,
-        MAX(CAST(iswinner AS INT)) AS iswinner_int
+        MAX(score) as score,
+        MAX(quote) as quote,
+        BOOL_OR(iswinner) as iswinner,
+        MIN(date) as first_submission
       FROM rankings
-      WHERE 
-        date >= $1 AND date < $2
+      WHERE date >= $1 AND date < $2
       GROUP BY username
-      ORDER BY 
-        MAX(CAST(iswinner AS INT)) DESC,
-        MAX(score) DESC
+    )
+    SELECT 
+      username,
+      score,
+      quote,
+      iswinner,
+      first_submission
+    FROM RankedData
+    WHERE TRUE ${cursorCondition}
+    ORDER BY 
+      iswinner DESC,
+      score DESC,
+      first_submission ASC,
+      username ASC
+    LIMIT ${limit + 1}
+
     `;
 
-    const { rows } = await db.query(stmt, [
-      start.toISOString(),
-      end.toISOString()
-    ]);
+    const { rows } = await db.query(stmt, params);
 
-    // isWinner 정리
-    const converted = rows.map(row => ({
-      ...row,
-      isWinner: row.iswinner_int === 1
-    }));
+    const hasNextPage = rows.length > limit;
+    const data = rows.slice(0, limit);
+    const nextCursor = hasNextPage ? `${data[data.length - 1].score}::${data[data.length - 1].username}` : null;
 
-    res.json(converted);
+    res.json({
+      rankings: data.map(row => ({
+        username: row.username,
+        score: row.score,
+        quote: row.quote,
+        isWinner: row.iswinner
+      })),
+      nextCursor,
+      hasNextPage
+    });
+
   } catch (error) {
     console.error('DB 조회 실패:', error);
     res.status(500).json({ error: '랭킹 조회 실패' });
@@ -134,6 +179,32 @@ app.post('/api/grok', async (req, res) => {
   } catch (error) {
     console.error('❌ Grok API 오류:', error);
     res.status(500).json({ error: 'Grok API 호출 실패', detail: error.message });
+  }
+});
+
+/**
+ * Pixabay 프록시 API
+ */
+app.get('/api/pixabay', async (req, res) => {
+  const { q } = req.query;
+  const apiKey = process.env.PIXABAY_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Pixabay API 키가 설정되지 않았습니다.' });
+  }
+
+  try {
+    const response = await fetch(`https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(q)}&image_type=photo&per_page=3`);
+    const data = await response.json();
+    
+    if (!data.hits || data.hits.length === 0) {
+      return res.json({ hits: [{ largeImageURL: '' }] });
+    }
+    
+    res.json(data);
+  } catch (error) {
+    console.error('❌ Pixabay API 오류:', error);
+    res.status(500).json({ error: 'Pixabay API 호출 실패', detail: error.message });
   }
 });
 
