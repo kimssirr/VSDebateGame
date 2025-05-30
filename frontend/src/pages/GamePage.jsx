@@ -51,7 +51,7 @@ const topicChoices = topicSet.topics;
     if (updatedMessages.filter(m => m.sender === 'user').length >= 10) return;
 
     const lastUserMessage = updatedMessages[updatedMessages.length - 1].text;
-    const aiResponse = await callGrok(`너는 ${aiPick}가 더 좋다는 입장이야.  
+    const aiResponse = await callGrok(`너는 ${aiPick}가 ${playerPick} 보다 더 좋다는 입장이야.  
 다음 사용자 말에 한 문장으로 논리적이면서도 **재미있고 유쾌한 반론**을 펼쳐줘: ${lastUserMessage}
 
 🧠 작성 원칙:
