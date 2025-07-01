@@ -15,7 +15,7 @@ const GROK_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://vs-debate-game.vercel.app'
+    'https://vs-debate-game-3.vercel.app'
   ]
 }));
 app.use(express.json());
